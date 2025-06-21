@@ -1,0 +1,48 @@
+{
+  "name": "create-halo-plugin",
+  "version": "1.0.0",
+  "description": "Quickly create Halo plugin development templates",
+  "keywords": [
+    "halo",
+    "halo-plugin"
+  ],
+  "homepage": "https://github.com/halo-sigs/create-halo-plugin/tree/main/cli#readme",
+  "bugs": {
+    "url": "https://github.com/halo-sigs/create-halo-plugin/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/halo-sigs/create-halo-plugin.git"
+  },
+  "license": "GPL-3.0",
+  "author": {
+    "name": "Halo",
+    "url": "https://github.com/halo-dev"
+  },
+  "type": "module",
+  "bin": {
+    "create-halo-plugin": "index.js"
+  },
+  "scripts": {
+    "dev": "node index.js",
+    "check": "biome check --write ./src",
+    "build": "echo 'No build step required'",
+    "test": "echo 'No tests specified'"
+  },
+  "dependencies": {
+    "fs-extra": "^11.3.0",
+    "handlebars": "^4.7.8",
+    "kolorist": "^1.8.0",
+    "minimist": "^1.2.8",
+    "prompts": "^2.4.2"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.0.0",
+    "@types/minimist": "^1.2.5",
+    "@types/prompts": "^2.4.9"
+  },
+  "packageManager": "pnpm@10.12.1",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

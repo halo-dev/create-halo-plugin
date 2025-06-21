@@ -1,0 +1,22 @@
+# Refer https://docs.halo.run/developer-guide/plugin/basics/manifest
+
+apiVersion: plugin.halo.run/v1alpha1
+kind: Plugin
+metadata:
+  # The name defines how the plugin is invoked, A unique name
+  name: {{projectName}}
+spec:
+  enabled: true
+  requires: ">=2.21.0"
+  author:
+    name: {{author}}
+    website: https://github.com/{{author}}
+  logo: logo.png
+  homepage: https://github.com/{{author}}/{{projectName}}#readme
+  repo: https://github.com/{{author}}/{{projectName}}
+  issues: https://github.com/{{author}}/{{projectName}}/issues
+  displayName: "{{projectName}}"
+  description: "{{projectName}} - Halo 插件"
+  license:
+    - name: "GPL-3.0"
+      url: "https://github.com/{{author}}/{{projectName}}/blob/main/LICENSE"
