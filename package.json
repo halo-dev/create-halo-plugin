@@ -27,7 +27,8 @@
     "dev": "node index.js",
     "check": "biome check --write ./src",
     "build": "echo 'No build step required'",
-    "test": "echo 'No tests specified'"
+    "test": "echo 'No tests specified'",
+    "release": "release-it"
   },
   "dependencies": {
     "fs-extra": "^11.3.0",
@@ -39,7 +40,8 @@
   "devDependencies": {
     "@biomejs/biome": "2.0.0",
     "@types/minimist": "^1.2.5",
-    "@types/prompts": "^2.4.9"
+    "@types/prompts": "^2.4.9",
+    "release-it": "^19.0.3"
   },
   "packageManager": "pnpm@10.12.1",
   "engines": {
