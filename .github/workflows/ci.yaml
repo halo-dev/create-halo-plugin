@@ -16,6 +16,8 @@ jobs:
           node-version: 22
           pnpm-version: 10
           java-version: 21
+      - name: Install dependencies
+        run: pnpm install
       - name: Create a plugin
         run: pnpm dev build/my-plugin --name=my-plugin --domain=run.halo.plugin --author=halo --uiTool=rsbuild
       - name: Build the plugin
