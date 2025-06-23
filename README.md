@@ -173,6 +173,6 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 ## Related
 
-- [Halo](https://halo.run) - Modern blog platform
+- [Halo](https://www.halo.run) - Powerful and easy-to-use open source website builder
 - [Halo Documentation](https://docs.halo.run) - Official documentation
 - [Plugin Development Guide](https://docs.halo.run/developer-guide/plugin/introduction)

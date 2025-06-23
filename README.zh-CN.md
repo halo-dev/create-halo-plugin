@@ -173,6 +173,6 @@ npx create-halo-plugin --version
 
 ## 相关链接
 
-- [Halo](https://halo.run) - 现代博客平台
+- [Halo](https://www.halo.run) - 强大易用的开源建站工具
 - [Halo 文档](https://docs.halo.run) - 官方文档
 - [插件开发指南](https://docs.halo.run/developer-guide/plugin/introduction)
