@@ -3,5 +3,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = '{{projectName}}'
+rootProject.name = 'plugin-{{projectName}}'
 include 'ui'
