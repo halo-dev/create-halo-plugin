@@ -6,13 +6,13 @@
     "halo",
     "halo-plugin"
   ],
-  "homepage": "https://github.com/halo-sigs/create-halo-plugin/tree/main/cli#readme",
+  "homepage": "https://github.com/halo-dev/create-halo-plugin/tree/main/cli#readme",
   "bugs": {
-    "url": "https://github.com/halo-sigs/create-halo-plugin/issues"
+    "url": "https://github.com/halo-dev/create-halo-plugin/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/halo-sigs/create-halo-plugin.git"
+    "url": "https://github.com/halo-dev/create-halo-plugin.git"
   },
   "license": "GPL-3.0",
   "author": {
