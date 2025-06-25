@@ -7,7 +7,7 @@ group '{{packageName}}.ui'
 
 tasks.register('pnpmBuild', PnpmTask) {
     group = 'build'
-    description =  'Build the UI project using pnpm'
+    description = 'Build the UI project using pnpm'
     args = ['build']
     dependsOn tasks.named('pnpmInstall')
     inputs.dir(layout.projectDirectory.dir('src'))

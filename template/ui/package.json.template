@@ -16,6 +16,12 @@
     "test:unit": "vitest --passWithNoTests",
     "type-check": "vue-tsc --build"
   },
+  "prettier": {
+    "printWidth": 100,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2
+  },
   "dependencies": {
     "@halo-dev/api-client": "^2.21.0",
     "@halo-dev/components": "^2.21.0",
@@ -48,7 +54,7 @@
     "jsdom": "^26.1.0",
     "npm-run-all2": "^7.0.2",
     "oxlint": "^0.16.12",
-    "prettier": "3.5.3",
+    "prettier": "^3.6.0",
     "sass": "^1.89.2",
     "typescript": "~5.8.3",
     "unplugin-icons": "^22.1.0",
