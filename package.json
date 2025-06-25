@@ -23,6 +23,14 @@
   "bin": {
     "create-halo-plugin": "index.js"
   },
+  "files": [
+    "src/",
+    "template/",
+    "index.js",
+    "LICENSE",
+    "README.md",
+    "README.zh-CN.md"
+  ],
   "scripts": {
     "dev": "node index.js",
     "check": "biome check --write ./src",
