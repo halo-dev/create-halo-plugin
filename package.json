@@ -1,6 +1,6 @@
 {
   "name": "create-halo-plugin",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Quickly create Halo plugin development templates",
   "keywords": [
     "halo",
