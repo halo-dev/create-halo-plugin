@@ -32,11 +32,11 @@
     "README.zh-CN.md"
   ],
   "scripts": {
-    "dev": "node index.js",
-    "check": "biome check --write ./src",
     "build": "echo 'No build step required'",
-    "test": "echo 'No tests specified'",
-    "release": "release-it"
+    "check": "biome check --write ./src",
+    "dev": "node index.js",
+    "release": "release-it",
+    "test": "echo 'No tests specified'"
   },
   "dependencies": {
     "fs-extra": "^11.3.0",
@@ -54,5 +54,18 @@
   "packageManager": "pnpm@10.12.1",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "release-it": {
+    "git": {
+      "commit": true,
+      "tag": true,
+      "push": true
+    },
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": true
+    }
   }
 }
