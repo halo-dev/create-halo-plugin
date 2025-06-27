@@ -1,5 +1,6 @@
 export const templateConfig = {
   templateFiles: [
+    ".gitignore.template",
     "build.gradle.template",
     "settings.gradle.template",
     "README.md.template",
