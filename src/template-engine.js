@@ -59,23 +59,17 @@ function getAllFiles(dir, basePath = "") {
 }
 
 /**
- * Check if file is a template file
- * @param {string} filePath - File path
- * @param {string[]} templateFiles - Template files list
- * @returns {boolean}
- */
-function isTemplateFile(filePath, templateFiles) {
-  return templateFiles.includes(filePath);
-}
-
-/**
  * Check if file is a conditional file
  * @param {string} filePath - File path
  * @param {string[]} conditionalFiles - Conditional files list
  * @returns {boolean}
  */
 function isConditionalFile(filePath, conditionalFiles) {
-  return conditionalFiles.includes(filePath);
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  return conditionalFiles.some(conditional => {
+    const normalizedConditional = conditional.replace(/\\/g, '/');
+    return normalizedPath === normalizedConditional;
+  });
 }
 
 /**
@@ -85,15 +79,21 @@ function isConditionalFile(filePath, conditionalFiles) {
  * @returns {boolean}
  */
 function isExcludedConditionalFile(filePath, config) {
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  
   // Get all conditional files (including selected and unselected)
   const allConditionalFiles = Object.values(
     templateConfig.conditionalFiles,
-  ).flat();
+  ).flat().map(file => file.replace(/\\/g, '/'));
+
+  const selectedConditionalFiles = config.conditionalFiles.map(file => 
+    file.replace(/\\/g, '/')
+  );
 
   // If it's a conditional file but not in current selected conditional files list, it should be excluded
   return (
-    allConditionalFiles.includes(filePath) &&
-    !config.conditionalFiles.includes(filePath)
+    allConditionalFiles.includes(normalizedPath) &&
+    !selectedConditionalFiles.includes(normalizedPath)
   );
 }
 
@@ -137,8 +137,7 @@ async function processFile(filePath, projectPath, variables, config) {
     return;
   }
 
-  // Determine file type and process accordingly
-  if (isTemplateFile(filePath, config.templateFiles)) {
+  if (filePath.endsWith('.template')) {
     // Process template file
     await processTemplateFile(filePath, srcPath, projectPath, variables);
   } else if (isExcludedConditionalFile(filePath, config)) {
