@@ -23,7 +23,7 @@
     "tabWidth": 2
   },
   "dependencies": {
-    "@halo-dev/api-client": "^2.21.0",
+    "@halo-dev/api-client": "^2.21.1",
     "@halo-dev/components": "^2.21.0",
     "@halo-dev/console-shared": "^2.21.0",
     "axios": "^1.7.2",
@@ -37,7 +37,7 @@
     "@rsbuild/core": "^1.3.22",
     "@rsbuild/plugin-sass": "^1.3.2",
 {{/if}}
-    "@halo-dev/ui-plugin-bundler-kit": "^2.21.1",
+    "@halo-dev/ui-plugin-bundler-kit": "^2.21.2",
     "@iconify/json": "^2.2.350",
     "@tsconfig/node20": "^20.1.6",
     "@types/canvas-confetti": "^1.9.0",
