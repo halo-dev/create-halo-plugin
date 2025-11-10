@@ -22,6 +22,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install
       - name: Create a plugin
-        run: node index.js build/my-plugin --name=my-plugin --domain=run.halo.plugin --author=halo --uiTool=rsbuild
+        run: node index.js build/my-plugin --name=my-plugin --domain=run.halo.plugin --author=halo --includeUI --uiTool=rsbuild
       - name: Build the plugin
         run: cd build/my-plugin && ./gradlew build
