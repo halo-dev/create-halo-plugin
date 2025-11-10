@@ -39,19 +39,19 @@
     "test": "echo 'No tests specified'"
   },
   "dependencies": {
-    "fs-extra": "^11.3.0",
+    "fs-extra": "^11.3.2",
     "handlebars": "^4.7.8",
     "kolorist": "^1.8.0",
     "minimist": "^1.2.8",
     "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.0.0",
+    "@biomejs/biome": "^2.3.4",
     "@types/minimist": "^1.2.5",
     "@types/prompts": "^2.4.9",
-    "release-it": "^19.0.3"
+    "release-it": "^19.0.6"
   },
-  "packageManager": "pnpm@10.12.1",
+  "packageManager": "pnpm@10.21.0",
   "engines": {
     "node": ">=18.0.0"
   },

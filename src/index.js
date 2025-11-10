@@ -16,17 +16,17 @@ import {
 
 // Parse command line arguments
 const argv = minimist(process.argv.slice(2), {
-  string: ['name', 'domain', 'author', 'uiTool'],
-  boolean: ['help', 'version'],
+  string: ["name", "domain", "author", "uiTool"],
+  boolean: ["help", "version"],
   alias: {
-    h: 'help',
-    v: 'version',
-    n: 'name',
-    d: 'domain',
-    a: 'author',
-    u: 'uiTool',
-    i: 'includeUI'
-  }
+    h: "help",
+    v: "version",
+    n: "name",
+    d: "domain",
+    a: "author",
+    u: "uiTool",
+    i: "includeUI",
+  },
 });
 
 const targetDir = argv._[0];
@@ -62,12 +62,16 @@ Examples:
  */
 function showVersion() {
   // Read version from package.json
-  const packagePath = path.join(path.dirname(new URL(import.meta.url).pathname), '..', 'package.json');
+  const packagePath = path.join(
+    path.dirname(new URL(import.meta.url).pathname),
+    "..",
+    "package.json",
+  );
   try {
-    const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-    console.log(packageJson.version || '1.0.0');
+    const packageJson = JSON.parse(fs.readFileSync(packagePath, "utf8"));
+    console.log(packageJson.version || "1.0.0");
   } catch {
-    console.log('1.0.0');
+    console.log("1.0.0");
   }
 }
 
@@ -77,9 +81,9 @@ function showVersion() {
  * @returns {boolean|string} True if valid, error message if invalid
  */
 function validateUITool(uiTool) {
-  const validTools = ['rsbuild', 'vite'];
+  const validTools = ["rsbuild", "vite"];
   if (!validTools.includes(uiTool)) {
-    return `UI tool must be one of: ${validTools.join(', ')}`;
+    return `UI tool must be one of: ${validTools.join(", ")}`;
   }
   return true;
 }
@@ -91,10 +95,10 @@ function validateUITool(uiTool) {
  */
 function parseIncludeUI(value) {
   if (value === undefined) return null;
-  if (typeof value === 'boolean') return value;
-  if (typeof value === 'string') {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
     const lower = value.toLowerCase();
-    return lower !== 'false' && lower !== '0';
+    return lower !== "false" && lower !== "0";
   }
   return true;
 }
@@ -106,7 +110,7 @@ function parseIncludeUI(value) {
  */
 async function collectUserInputs(argv) {
   const includeUI = parseIncludeUI(argv.includeUI);
-  
+
   const fromCLI = {
     name: argv.name,
     domain: argv.domain,
@@ -115,9 +119,12 @@ async function collectUserInputs(argv) {
     uiTool: argv.uiTool,
   };
 
-  const needsPrompt = !fromCLI.name || !fromCLI.domain || !fromCLI.author || 
-                      fromCLI.includeUI === null || 
-                      (fromCLI.includeUI && !fromCLI.uiTool);
+  const needsPrompt =
+    !fromCLI.name ||
+    !fromCLI.domain ||
+    !fromCLI.author ||
+    fromCLI.includeUI === null ||
+    (fromCLI.includeUI && !fromCLI.uiTool);
 
   if (!needsPrompt) {
     validateInputs(fromCLI);
@@ -161,7 +168,7 @@ function logCommandLineArgs(inputs) {
   console.log(`   Name: ${inputs.name}`);
   console.log(`   Domain: ${inputs.domain}`);
   console.log(`   Author: ${inputs.author}`);
-  console.log(`   Include UI: ${inputs.includeUI ? 'Yes' : 'No'}`);
+  console.log(`   Include UI: ${inputs.includeUI ? "Yes" : "No"}`);
   if (inputs.includeUI) {
     console.log(`   UI Tool: ${inputs.uiTool}`);
   }
@@ -215,7 +222,7 @@ async function promptForMissingInputs(fromCLI) {
 
   const answers = await prompts(questions);
 
-  if (questions.some(q => answers[q.name] === undefined)) {
+  if (questions.some((q) => answers[q.name] === undefined)) {
     console.log("❌ Operation cancelled");
     process.exit(0);
   }
@@ -367,7 +374,7 @@ async function main() {
       console.log(`   Domain: ${group}`);
       console.log(`   Package: ${packageName}`);
       console.log(`   Author: ${answers.author}`);
-      console.log(`   Include UI: ${answers.includeUI ? 'Yes' : 'No'}`);
+      console.log(`   Include UI: ${answers.includeUI ? "Yes" : "No"}`);
       if (answers.includeUI) {
         console.log(`   UI Tool: ${answers.uiTool}`);
       }
