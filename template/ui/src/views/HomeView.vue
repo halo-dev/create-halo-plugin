@@ -23,7 +23,7 @@ onMounted(() => {
       <span class="message">你可以点击下方文档继续下一步</span>
       <div class="docs">
         <a
-          href="https://docs.halo.run/developer-guide/plugin/publish"
+          href="https://docs.halo.run/developer-guide/appendix/publish-app"
           class="docs__box"
           target="_blank"
         >
