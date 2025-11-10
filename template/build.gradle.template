@@ -34,6 +34,7 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 21
 }
 
+{{#if includeUI}}
 tasks.register('processUiResources', Copy) {
     from project(':ui').layout.buildDirectory.dir('dist')
     into layout.buildDirectory.dir('resources/main/console')
@@ -44,6 +45,7 @@ tasks.register('processUiResources', Copy) {
 tasks.named('classes') {
     dependsOn tasks.named('processUiResources')
 }
+{{/if}}
 
 halo {
     version = '2.21'

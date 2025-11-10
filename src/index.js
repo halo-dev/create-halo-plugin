@@ -24,7 +24,8 @@ const argv = minimist(process.argv.slice(2), {
     n: 'name',
     d: 'domain',
     a: 'author',
-    u: 'uiTool'
+    u: 'uiTool',
+    i: 'includeUI'
   }
 });
 
@@ -44,13 +45,14 @@ Options:
   -n, --name <name>       Plugin name (e.g., my-awesome-plugin)
   -d, --domain <domain>   Domain for group and package name (e.g., com.example)
   -a, --author <author>   Author name
-  -u, --uiTool <tool>     UI build tool (rsbuild or vite)
+  -i, --includeUI         Include UI project (default: prompt)
+  -u, --uiTool <tool>     UI build tool (rsbuild or vite, required if includeUI is true)
   -h, --help              Show this help message
   -v, --version           Show version number
 
 Examples:
-  pnpm create halo-plugin demo --name=demo --domain=com.example --author=ryanwang --uiTool=rsbuild
-  pnpm create halo-plugin --name my-plugin --domain com.example --author "John Doe" --uiTool vite
+  pnpm create halo-plugin demo --name=demo --domain=com.example --author=ryanwang --includeUI --uiTool=rsbuild
+  pnpm create halo-plugin --name my-plugin --domain com.example --author "John Doe" --includeUI=false
   pnpm create halo-plugin
 `);
 }
@@ -80,6 +82,181 @@ function validateUITool(uiTool) {
     return `UI tool must be one of: ${validTools.join(', ')}`;
   }
   return true;
+}
+
+/**
+ * Parse includeUI parameter from command line
+ * @param {*} value - Value from argv.includeUI
+ * @returns {boolean|null} Parsed boolean value or null if not provided
+ */
+function parseIncludeUI(value) {
+  if (value === undefined) return null;
+  if (typeof value === 'boolean') return value;
+  if (typeof value === 'string') {
+    const lower = value.toLowerCase();
+    return lower !== 'false' && lower !== '0';
+  }
+  return true;
+}
+
+/**
+ * Collect user inputs through interactive prompts or command line
+ * @param {Object} argv - Command line arguments
+ * @returns {Promise<Object>} User answers with isInteractive flag
+ */
+async function collectUserInputs(argv) {
+  const includeUI = parseIncludeUI(argv.includeUI);
+  
+  const fromCLI = {
+    name: argv.name,
+    domain: argv.domain,
+    author: argv.author,
+    includeUI: includeUI,
+    uiTool: argv.uiTool,
+  };
+
+  const needsPrompt = !fromCLI.name || !fromCLI.domain || !fromCLI.author || 
+                      fromCLI.includeUI === null || 
+                      (fromCLI.includeUI && !fromCLI.uiTool);
+
+  if (!needsPrompt) {
+    validateInputs(fromCLI);
+    logCommandLineArgs(fromCLI);
+    return { ...fromCLI, isInteractive: false };
+  }
+
+  const answers = await promptForMissingInputs(fromCLI);
+  return { ...answers, isInteractive: true };
+}
+
+/**
+ * Validate all inputs
+ * @param {Object} inputs - User inputs to validate
+ */
+function validateInputs(inputs) {
+  const nameValidation = validateProjectName(inputs.name);
+  if (nameValidation !== true) {
+    throw new Error(`Invalid plugin name: ${nameValidation}`);
+  }
+
+  const domainValidation = validateDomain(inputs.domain);
+  if (domainValidation !== true) {
+    throw new Error(`Invalid domain: ${domainValidation}`);
+  }
+
+  if (inputs.includeUI && inputs.uiTool) {
+    const uiToolValidation = validateUITool(inputs.uiTool);
+    if (uiToolValidation !== true) {
+      throw new Error(`Invalid UI tool: ${uiToolValidation}`);
+    }
+  }
+}
+
+/**
+ * Log command line arguments
+ * @param {Object} inputs - User inputs
+ */
+function logCommandLineArgs(inputs) {
+  console.log("📋 Using command line arguments:");
+  console.log(`   Name: ${inputs.name}`);
+  console.log(`   Domain: ${inputs.domain}`);
+  console.log(`   Author: ${inputs.author}`);
+  console.log(`   Include UI: ${inputs.includeUI ? 'Yes' : 'No'}`);
+  if (inputs.includeUI) {
+    console.log(`   UI Tool: ${inputs.uiTool}`);
+  }
+}
+
+/**
+ * Prompt for missing inputs
+ * @param {Object} fromCLI - Inputs from command line
+ * @returns {Promise<Object>} Complete user inputs
+ */
+async function promptForMissingInputs(fromCLI) {
+  const questions = [];
+
+  if (!fromCLI.name) {
+    questions.push({
+      type: "text",
+      name: "name",
+      message: "Plugin name:",
+      hint: "e.g., my-awesome-plugin",
+      validate: validateProjectName,
+    });
+  }
+
+  if (!fromCLI.domain) {
+    questions.push({
+      type: "text",
+      name: "domain",
+      message: "Domain (for group and package name):",
+      hint: "e.g., com.example",
+      validate: validateDomain,
+    });
+  }
+
+  if (!fromCLI.author) {
+    questions.push({
+      type: "text",
+      name: "author",
+      message: "Author name:",
+      initial: getCurrentUser(),
+    });
+  }
+
+  if (fromCLI.includeUI === null) {
+    questions.push({
+      type: "confirm",
+      name: "includeUI",
+      message: "Include UI project?",
+      initial: true,
+    });
+  }
+
+  const answers = await prompts(questions);
+
+  if (questions.some(q => answers[q.name] === undefined)) {
+    console.log("❌ Operation cancelled");
+    process.exit(0);
+  }
+
+  const includeUI = fromCLI.includeUI ?? answers.includeUI;
+  let uiTool = fromCLI.uiTool;
+
+  if (includeUI && !uiTool) {
+    const uiToolAnswer = await prompts({
+      type: "select",
+      name: "uiTool",
+      message: "Choose UI build tool:",
+      choices: [
+        {
+          title: "Rsbuild",
+          value: "rsbuild",
+          description: "The Rspack Powered Build Tool(Recommended)",
+        },
+        {
+          title: "Vite",
+          value: "vite",
+          description: "The Build Tool for the Web",
+        },
+      ],
+    });
+
+    if (uiToolAnswer.uiTool === undefined) {
+      console.log("❌ Operation cancelled");
+      process.exit(0);
+    }
+
+    uiTool = uiToolAnswer.uiTool;
+  }
+
+  return {
+    name: fromCLI.name || answers.name,
+    domain: fromCLI.domain || answers.domain,
+    author: fromCLI.author || answers.author,
+    includeUI: includeUI,
+    uiTool: includeUI ? uiTool : null,
+  };
 }
 
 /**
@@ -159,111 +336,8 @@ async function main() {
     // Validate target directory early (if user specified one)
     validateTargetDir(targetDir);
 
-    // Check if all required parameters are provided via command line
-    const hasAllParams = argv.name && argv.domain && argv.author && argv.uiTool;
-    
-    let answers = {};
-
-    if (hasAllParams) {
-      // Validate command line arguments
-      const nameValidation = validateProjectName(argv.name);
-      if (nameValidation !== true) {
-        throw new Error(`Invalid plugin name: ${nameValidation}`);
-      }
-
-      const domainValidation = validateDomain(argv.domain);
-      if (domainValidation !== true) {
-        throw new Error(`Invalid domain: ${domainValidation}`);
-      }
-
-      const uiToolValidation = validateUITool(argv.uiTool);
-      if (uiToolValidation !== true) {
-        throw new Error(`Invalid UI tool: ${uiToolValidation}`);
-      }
-
-      // Use command line arguments
-      answers = {
-        name: argv.name,
-        domain: argv.domain,
-        author: argv.author,
-        uiTool: argv.uiTool
-      };
-
-      console.log("📋 Using command line arguments:");
-      console.log(`   Name: ${answers.name}`);
-      console.log(`   Domain: ${answers.domain}`);
-      console.log(`   Author: ${answers.author}`);
-      console.log(`   UI Tool: ${answers.uiTool}`);
-    } else {
-      // Interactive mode - prompt for missing parameters
-      const promptQuestions = [];
-
-      if (!argv.name) {
-        promptQuestions.push({
-          type: "text",
-          name: "name",
-          message: "Plugin name:",
-          hint: "e.g., my-awesome-plugin",
-          validate: validateProjectName,
-        });
-      }
-
-      if (!argv.domain) {
-        promptQuestions.push({
-          type: "text",
-          name: "domain",
-          message: "Domain (for group and package name):",
-          hint: "e.g., com.example",
-          validate: validateDomain,
-        });
-      }
-
-      if (!argv.author) {
-        promptQuestions.push({
-          type: "text",
-          name: "author",
-          message: "Author name:",
-          initial: getCurrentUser(),
-        });
-      }
-
-      if (!argv.uiTool) {
-        promptQuestions.push({
-          type: "select",
-          name: "uiTool",
-          message: "Choose UI build tool:",
-          choices: [
-            {
-              title: "Rsbuild",
-              value: "rsbuild",
-              description: "The Rspack Powered Build Tool(Recommended)",
-            },
-            {
-              title: "Vite",
-              value: "vite",
-              description: "The Build Tool for the Web",
-            },
-          ],
-        });
-      }
-
-      // Get missing parameters through prompts
-      const promptAnswers = await prompts(promptQuestions);
-
-      // If user cancelled input
-      if (promptQuestions.some(q => promptAnswers[q.name] === undefined)) {
-        console.log("❌ Operation cancelled");
-        process.exit(0);
-      }
-
-      // Merge command line args with prompt answers
-      answers = {
-        name: argv.name || promptAnswers.name,
-        domain: argv.domain || promptAnswers.domain,
-        author: argv.author || promptAnswers.author,
-        uiTool: argv.uiTool || promptAnswers.uiTool,
-      };
-    }
+    // Collect user inputs (from CLI args or interactive prompts)
+    const answers = await collectUserInputs(argv);
 
     // Process and format input
     const projectName = formatProjectName(answers.name);
@@ -282,19 +356,23 @@ async function main() {
       packageName,
       group,
       author: answers.author,
+      includeUI: answers.includeUI,
       uiTool: answers.uiTool,
     };
 
-    if (!hasAllParams) {
+    // Show configuration and confirm in interactive mode
+    if (answers.isInteractive) {
       console.log("\n📋 Project Configuration:");
       console.log(`   Name: ${projectName}`);
       console.log(`   Domain: ${group}`);
       console.log(`   Package: ${packageName}`);
       console.log(`   Author: ${answers.author}`);
-      console.log(`   UI Tool: ${answers.uiTool}`);
+      console.log(`   Include UI: ${answers.includeUI ? 'Yes' : 'No'}`);
+      if (answers.includeUI) {
+        console.log(`   UI Tool: ${answers.uiTool}`);
+      }
       console.log(`   Output Directory: ${projectPath}`);
 
-      // Confirm creation (only in interactive mode)
       const { confirm } = await prompts({
         type: "confirm",
         name: "confirm",

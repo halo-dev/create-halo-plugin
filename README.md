@@ -61,6 +61,7 @@ The CLI will guide you through the setup process:
 ✔ Plugin name: › my-awesome-plugin
 ✔ Domain (for group and package name): › com.example
 ✔ Author name: › John Doe
+✔ Include UI project? › yes
 ✔ Choose UI build tool: › Vite
 
 📋 Project Configuration:
@@ -68,15 +69,26 @@ The CLI will guide you through the setup process:
    Domain: com.example
    Package: com.example.myawesomeplugin
    Author: John Doe
+   Include UI: Yes
    UI Tool: vite
    Output Directory: /path/to/my-awesome-plugin
 
 ✔ Create project? › yes
 ```
 
+### Creating Backend-Only Plugins
+
+If your plugin doesn't need a user interface, you can skip UI project creation via command line:
+
+```bash
+pnpm create halo-plugin my-backend-plugin --name=my-backend-plugin --domain=com.example --author="John Doe" --includeUI=false
+```
+
+Or select "no" when prompted to include a UI project during interactive setup.
+
 ## Project Structure
 
-The generated project includes:
+### Full Project with UI
 
 ```bash
 my-plugin/
@@ -106,7 +118,31 @@ my-plugin/
 └── README.md
 ```
 
+### Backend-Only Project (without UI)
+
+```bash
+my-plugin/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/myplugin/
+│   │   │       └── MyPluginPlugin.java
+│   │   └── resources/
+│   │       ├── plugin.yaml
+│   │       └── logo.png
+│   └── test/
+│       └── java/
+│           └── com/example/myplugin/
+│               └── MyPluginPluginTest.java
+├── build.gradle
+├── settings.gradle
+├── gradlew
+└── README.md
+```
+
 ## Development
+
+### Projects with UI
 
 After creating your project:
 
@@ -120,6 +156,18 @@ cd my-plugin
 # In another terminal, start UI development
 cd ui
 pnpm dev
+```
+
+### Backend-Only Projects
+
+For projects without UI:
+
+```bash
+# Navigate to your project
+cd my-plugin
+
+# Start Halo development server
+./gradlew haloServer
 ```
 
 ## Requirements
@@ -153,7 +201,7 @@ Choose between two modern build tools:
 - 📊 Better build performance
 - 📦 Code splitting, suitable for larger plugin projects
 
-## Commands
+## Command Line Options
 
 ```bash
 # Show help
@@ -161,7 +209,31 @@ npx create-halo-plugin --help
 
 # Show version
 npx create-halo-plugin --version
+
+# Create project with command line arguments
+npx create-halo-plugin my-plugin \
+  --name=my-plugin \
+  --domain=com.example \
+  --author="John Doe" \
+  --includeUI \
+  --uiTool=rsbuild
+
+# Create backend-only project
+npx create-halo-plugin my-backend-plugin \
+  --name=my-backend-plugin \
+  --domain=com.example \
+  --author="John Doe" \
+  --includeUI=false
 ```
+
+Available options:
+- `-n, --name <name>` - Plugin name
+- `-d, --domain <domain>` - Domain for group and package name
+- `-a, --author <author>` - Author name
+- `-i, --includeUI` - Include UI project
+- `-u, --uiTool <tool>` - UI build tool (rsbuild or vite, required when includeUI is true)
+- `-h, --help` - Show help message
+- `-v, --version` - Show version number
 
 ## Contributing
 

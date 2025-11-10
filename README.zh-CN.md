@@ -60,23 +60,35 @@ CLI 将引导你完成设置过程：
 
 ✔ 插件名称: › my-awesome-plugin
 ✔ 域名 (用于组和包名): › com.example
-✔ 作者姓名: › 张三
+✔ 作者姓名: › Ryan
+✔ 是否包含 UI 项目? › 是
 ✔ 选择 UI 构建工具: › Vite
 
 📋 项目配置:
    名称: my-awesome-plugin
    域名: com.example
    包名: com.example.myawesomeplugin
-   作者: 张三
+   作者: Ryan
+   包含 UI: 是
    UI 工具: vite
    输出目录: /path/to/my-awesome-plugin
 
 ✔ 创建项目? › 是
 ```
 
+### 创建不包含 UI 的后端插件
+
+如果你的插件不需要用户界面，可以通过命令行参数跳过 UI 项目的创建：
+
+```bash
+pnpm create halo-plugin my-backend-plugin --name=my-backend-plugin --domain=com.example --author="张三" --includeUI=false
+```
+
+或者在交互式设置中选择 "否" 来跳过 UI 项目创建。
+
 ## 项目结构
 
-生成的项目包含：
+### 包含 UI 的完整项目结构
 
 ```bash
 my-plugin/
@@ -106,7 +118,31 @@ my-plugin/
 └── README.md
 ```
 
+### 纯后端项目结构（不包含 UI）
+
+```bash
+my-plugin/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/example/myplugin/
+│   │   │       └── MyPluginPlugin.java
+│   │   └── resources/
+│   │       ├── plugin.yaml
+│   │       └── logo.png
+│   └── test/
+│       └── java/
+│           └── com/example/myplugin/
+│               └── MyPluginPluginTest.java
+├── build.gradle
+├── settings.gradle
+├── gradlew
+└── README.md
+```
+
 ## 开发
+
+### 包含 UI 的项目
 
 创建项目后：
 
@@ -120,6 +156,18 @@ cd my-plugin
 # 在另一个终端中，启动 UI 开发
 cd ui
 pnpm dev
+```
+
+### 纯后端项目
+
+对于不包含 UI 的项目：
+
+```bash
+# 进入项目目录
+cd my-plugin
+
+# 启动 Halo 开发服务器
+./gradlew haloServer
 ```
 
 ## 系统要求
@@ -153,7 +201,7 @@ pnpm dev
 - 📊 更好的构建性能
 - 📦 支持代码分割，适用于更加大型的插件项目
 
-## 命令
+## 命令行选项
 
 ```bash
 # 显示帮助
@@ -161,7 +209,31 @@ npx create-halo-plugin --help
 
 # 显示版本
 npx create-halo-plugin --version
+
+# 使用命令行参数创建项目
+npx create-halo-plugin my-plugin \
+  --name=my-plugin \
+  --domain=com.example \
+  --author="张三" \
+  --includeUI \
+  --uiTool=rsbuild
+
+# 创建不包含 UI 的项目
+npx create-halo-plugin my-backend-plugin \
+  --name=my-backend-plugin \
+  --domain=com.example \
+  --author="张三" \
+  --includeUI=false
 ```
+
+可用选项：
+- `-n, --name <name>` - 插件名称
+- `-d, --domain <domain>` - 域名（用于组和包名）
+- `-a, --author <author>` - 作者名称
+- `-i, --includeUI` - 是否包含 UI 项目
+- `-u, --uiTool <tool>` - UI 构建工具 (rsbuild 或 vite，当 includeUI 为 true 时需要)
+- `-h, --help` - 显示帮助信息
+- `-v, --version` - 显示版本号
 
 ## 贡献
 

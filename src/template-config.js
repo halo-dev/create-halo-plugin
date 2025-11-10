@@ -5,9 +5,10 @@ export const templateConfig = {
   },
 };
 
-export function getFileProcessingConfig(uiTool) {
+export function getFileProcessingConfig(uiTool, includeUI = true) {
   return {
     templateFiles: templateConfig.templateFiles,
-    conditionalFiles: templateConfig.conditionalFiles[uiTool] || [],
+    conditionalFiles: includeUI && uiTool ? (templateConfig.conditionalFiles[uiTool] || []) : [],
+    includeUI: includeUI,
   };
 }

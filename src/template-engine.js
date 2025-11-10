@@ -109,7 +109,7 @@ export async function generateProject(projectPath, variables) {
   await fs.ensureDir(projectPath);
 
   // Get file processing configuration
-  const config = getFileProcessingConfig(variables.uiTool);
+  const config = getFileProcessingConfig(variables.uiTool, variables.includeUI);
 
   // Get all files in template directory
   const allFiles = getAllFiles(templateDir);
@@ -134,6 +134,12 @@ async function processFile(filePath, projectPath, variables, config) {
 
   // Check if file exists
   if (!fs.existsSync(srcPath)) {
+    return;
+  }
+
+  // Skip UI files if includeUI is false
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  if (!config.includeUI && normalizedPath.startsWith('ui/')) {
     return;
   }
 

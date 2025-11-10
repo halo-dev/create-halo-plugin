@@ -15,13 +15,14 @@
 ## 开发
 
 ```bash
-# 构建插件
-./gradlew build
-
+# 启用插件
+./gradlew haloServer
+{{#if includeUI}}
 # 开发前端
 cd ui
 pnpm install
 pnpm dev
+{{/if}}
 ```
 
 ## 构建
