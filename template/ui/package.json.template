@@ -9,7 +9,7 @@
     "build-only": "rsbuild build",
     "dev": "rsbuild build --watch --env-mode=development",
 {{/if}}
-    "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
+    "lint:oxlint": "oxlint . --fix -D correctness --ignore-path ../.gitignore",
     "lint:eslint": "eslint . --fix",
     "lint": "run-s lint:*",
     "prettier": "prettier --write src/",
@@ -23,9 +23,9 @@
     "tabWidth": 2
   },
   "dependencies": {
-    "@halo-dev/api-client": "^2.21.1",
-    "@halo-dev/components": "^2.21.0",
-    "@halo-dev/console-shared": "^2.21.0",
+    "@halo-dev/api-client": "^2.22.0",
+    "@halo-dev/components": "^2.22.0",
+    "@halo-dev/ui-shared": "^2.22.0",
     "axios": "^1.7.2",
     "canvas-confetti": "^1.9.3",
     "vue": "^3.5.17"
@@ -37,8 +37,8 @@
     "@rsbuild/core": "^1.4.3",
     "@rsbuild/plugin-sass": "^1.3.2",
 {{/if}}
-    "@halo-dev/ui-plugin-bundler-kit": "^2.21.2",
-    "@iconify/json": "^2.2.350",
+    "@halo-dev/ui-plugin-bundler-kit": "^2.22.0",
+    "@iconify-json/ri": "^1.2.6",
     "@tsconfig/node20": "^20.1.6",
     "@types/canvas-confetti": "^1.9.0",
     "@types/jsdom": "^21.1.7",
@@ -61,5 +61,5 @@
     "vitest": "^3.2.4",
     "vue-tsc": "^2.2.10"
   },
-  "packageManager": "pnpm@9.15.9"
+  "packageManager": "pnpm@10.12.4"
 }
