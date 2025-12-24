@@ -25,4 +25,4 @@ jobs:
       - name: Upgrade npm
         run: npm i -g npm@latest
       - name: Publish to NPM
-        run: pnpm publish
+        run: pnpm publish --no-git-checks
