@@ -1,5 +1,4 @@
 import { definePlugin } from '@halo-dev/ui-shared'
-import HomeView from './views/HomeView.vue'
 import { IconPlug } from '@halo-dev/components'
 import { markRaw } from 'vue'
 
@@ -11,7 +10,7 @@ export default definePlugin({
       route: {
         path: '/example',
         name: 'Example',
-        component: HomeView,
+        component: () => import(/* webpackChunkName: "HomeView" */ './views/HomeView.vue'),
         meta: {
           title: '示例页面',
           searchable: true,
