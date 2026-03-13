@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id "io.freefair.lombok" version "8.13"
-    id "run.halo.plugin.devtools" version "0.6.1"
+    id "io.freefair.lombok" version "9.2.0"
+    id "run.halo.plugin.devtools" version "0.6.2"
 }
 
 group '{{packageName}}'
@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('run.halo.tools.platform:plugin:2.22.0')
+    implementation platform('run.halo.tools.platform:plugin:2.23.0')
     compileOnly 'run.halo.app:api'
 
     testImplementation 'run.halo.app:api'
@@ -47,7 +47,11 @@ tasks.named('classes') {
 }
 {{/if}}
 
+tasks.named('generatePluginComponentsIdx') {
+    notCompatibleWithConfigurationCache('This task invokes "Task.project" at execution time, which is not supported with configuration cache.')
+}
+
 halo {
-    version = '2.22'
+    version = '2.23'
 }
 
