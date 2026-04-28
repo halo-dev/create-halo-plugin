@@ -11,7 +11,7 @@ repositories {
 }
 
 dependencies {
-    implementation platform('run.halo.tools.platform:plugin:2.23.0')
+    implementation platform('run.halo.tools.platform:plugin:2.24.0')
     compileOnly 'run.halo.app:api'
 
     testImplementation 'run.halo.app:api'
@@ -52,6 +52,6 @@ tasks.named('generatePluginComponentsIdx') {
 }
 
 halo {
-    version = '2.23'
+    version = '2.24'
 }
 
