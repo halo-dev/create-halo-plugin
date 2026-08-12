@@ -9,7 +9,11 @@
 ## 开发环境
 
 - Java 21+
+{{#if includeUI}}
+- Node.js ^20.19.0 or >=22.12.0
+{{else}}
 - Node.js 18+
+{{/if}}
 - pnpm
 
 ## 开发
@@ -35,4 +39,4 @@ pnpm dev
 
 ## 许可证
 
-[GPL-3.0](./LICENSE) © {{author}} 
+[GPL-3.0](./LICENSE) © {{author}}

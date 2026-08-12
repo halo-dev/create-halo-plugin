@@ -1,4 +1,5 @@
 {
+  "private": true,
   "type": "module",
   "scripts": {
     "build": "run-p type-check \"build-only {@}\" --",
@@ -9,57 +10,56 @@
     "build-only": "rsbuild build",
     "dev": "rsbuild build --watch --env-mode=development",
 {{/if}}
-    "lint:oxlint": "oxlint . --fix -D correctness --ignore-path ../.gitignore",
-    "lint:eslint": "eslint . --fix",
-    "lint": "run-s lint:*",
-    "prettier": "prettier --write src/",
+    "lint:oxlint": "oxlint . --fix",
+    "lint:eslint": "eslint . --fix --cache",
+    "lint": "run-s \"lint:*\"",
+    "format": "prettier --write --experimental-cli src/",
     "test:unit": "vitest --passWithNoTests",
     "type-check": "vue-tsc --build"
   },
-  "prettier": {
-    "printWidth": 100,
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2
-  },
   "dependencies": {
-    "@halo-dev/api-client": "^2.25.1",
-    "@halo-dev/components": "^2.25.1",
-    "@halo-dev/ui-shared": "^2.25.1",
-    "axios": "^1.13.5",
-    "canvas-confetti": "^1.9.3",
-    "vue": "^3.5.28"
+    "@halo-dev/api-client": "^2.25.2",
+    "@halo-dev/components": "^2.25.2",
+    "@halo-dev/ui-shared": "^2.25.2",
+    "axios": "^1.19.0",
+    "canvas-confetti": "^1.9.4",
+    "vue": "^3.5.40"
   },
   "devDependencies": {
 {{#if (eq uiTool "vite")}}
-    "vite": "^8.0.16",
+    "vite": "^8.2.0",
 {{else}}
-    "@rsbuild/core": "^1.7.3",
-    "@rsbuild/plugin-sass": "^1.5.0",
+    "@rsbuild/core": "^2.1.11",
+    "@rsbuild/plugin-sass": "^2.0.1",
 {{/if}}
-    "@halo-dev/ui-plugin-bundler-kit": "^2.25.1",
+    "@halo-dev/ui-plugin-bundler-kit": "^2.25.2",
     "@iconify-json/ri": "^1.2.10",
-    "@tsconfig/node20": "^20.1.6",
+    "@tsconfig/node24": "^24.0.4",
     "@types/canvas-confetti": "^1.9.0",
-    "@types/jsdom": "^21.1.7",
-    "@types/node": "^24.13.1",
-    "@vitest/eslint-plugin": "^1.2.7",
-    "@vue/eslint-config-prettier": "^10.2.0",
-    "@vue/eslint-config-typescript": "^14.5.1",
-    "@vue/test-utils": "^2.4.6",
-    "@vue/tsconfig": "^0.7.0",
-    "eslint": "^9.29.0",
-    "eslint-plugin-oxlint": "^0.16.12",
-    "eslint-plugin-vue": "~10.0.1",
-    "jsdom": "^26.1.0",
-    "npm-run-all2": "^7.0.2",
-    "oxlint": "^0.16.12",
-    "prettier": "^3.8.3",
-    "sass": "^1.89.2",
-    "typescript": "~5.8.3",
+    "@types/jsdom": "^28.0.3",
+    "@types/node": "^24.13.3",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vitest/eslint-plugin": "^1.6.23",
+    "@vue/eslint-config-typescript": "^14.9.0",
+    "@vue/test-utils": "^2.4.11",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^10.7.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-oxlint": "~1.77.0",
+    "eslint-plugin-vue": "~10.9.2",
+    "jiti": "^2.7.0",
+    "jsdom": "^30.0.1",
+    "npm-run-all2": "^9.0.2",
+    "oxlint": "~1.77.0",
+    "prettier": "3.9.6",
+    "sass": "^1.102.0",
+    "typescript": "~6.0.0",
     "unplugin-icons": "^23.0.1",
-    "vitest": "^4.1.0",
-    "vue-tsc": "^3.3.3"
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.7"
   },
-  "packageManager": "pnpm@10.12.4"
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
 }

@@ -23,6 +23,8 @@ pnpm-debug.log*
 
 # IDE files
 .vscode/
+!template/.vscode/
+!template/.vscode/*.json
 .idea/
 *.swp
 *.swo
