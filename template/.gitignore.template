@@ -12,6 +12,10 @@ bin/
 
 ### Node
 node_modules/
+.eslintcache
+*.tsbuildinfo
+coverage/
+*.timestamp-*-*.mjs
 
 ### STS
 .apt_generated
@@ -44,8 +48,9 @@ nbdist/
 ### VSCode
 *.project
 *.factorypath
-.vscode
+.vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 
 ### Compiled class file
 *.class
