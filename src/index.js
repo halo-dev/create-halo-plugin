@@ -237,14 +237,14 @@ async function promptForMissingInputs(fromCLI) {
       message: "Choose UI build tool:",
       choices: [
         {
-          title: "Rsbuild",
-          value: "rsbuild",
-          description: "The Rspack Powered Build Tool(Recommended)",
-        },
-        {
           title: "Vite",
           value: "vite",
-          description: "The Build Tool for the Web",
+          description: "The Build Tool for the Web(Recommended)",
+        },
+        {
+          title: "Rsbuild",
+          value: "rsbuild",
+          description: "The Rspack Powered Build Tool",
         },
       ],
     });
