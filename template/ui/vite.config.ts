@@ -1,6 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
 
-import { viteConfig } from '@halo-dev/ui-plugin-bundler-kit'
+import { viteConfig } from '@halo-dev/ui-plugin-bundler-kit/vite'
 import Icons from 'unplugin-icons/vite'
 
 // For more info,
