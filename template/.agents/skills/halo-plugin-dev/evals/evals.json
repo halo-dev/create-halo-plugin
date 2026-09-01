@@ -1,0 +1,45 @@
+{
+  "skill_name": "halo-plugin-dev",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Implement a Project custom model, a synchronization endpoint described with SpringdocRouteBuilder, and a Console project list in a Halo 2.26 plugin. Complete the Java API and Vue request code. Do not assume the project has already generated a TypeScript client.",
+      "expected_output": "Java models and OpenAPI descriptions remain the source of truth, Gradle generates the TypeScript API client, and the UI reuses Halo's axiosInstance.",
+      "files": [],
+      "expectations": [
+        "generateApiClient is configured and run for the custom model and SpringdocRouteBuilder endpoint",
+        "The UI uses generated models, parameters, and API methods without handwritten duplicate resource types or API paths",
+        "Generated API classes reuse axiosInstance from @halo-dev/api-client",
+        "No separate Axios instance is created for /api or /apis",
+        "Generated directories, build artifacts, and lockfiles are not hand-edited"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Add ordinary runtime settings and create/edit dialogs for Project resources to a Halo plugin. Implement the Console UI so its visuals, validation, loading states, and error feedback match Halo's built-in pages.",
+      "expected_output": "Ordinary configuration uses Setting YAML, business forms use the host FormKit installation, and page interactions reuse Halo components.",
+      "files": [],
+      "expectations": [
+        "Ordinary plugin settings are rendered from Setting YAML without a duplicate settings route",
+        "Create and edit forms use Halo's registered FormKit installation instead of a custom form system",
+        "Pages, dialogs, lists, search, and feedback reuse @halo-dev/components where available",
+        "Untrusted input is validated on both frontend and backend, and UI permissions match backend permissions",
+        "No host component source is copied and no new UI framework is added merely to imitate Halo styling"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Implement a Halo plugin that periodically synchronizes projects from GitHub or a self-hosted GitLab instance. Administrators can configure the base URL and access token and may enable an anonymous public API. Implement secure storage, outbound requests, and configuration failure handling.",
+      "expected_output": "Credentials are stored in Secret resources, reactive requests validate SSRF and redirects before attaching credentials, and public access fails closed.",
+      "files": [],
+      "expectations": [
+        "The token is stored in a Halo Secret while ConfigMap and custom models store only the Secret name",
+        "WebFlux paths use WebClient and reactive Halo APIs without block calls or blocking clients",
+        "Custom destinations restrict schemes, hosts, resolved DNS addresses, and redirects before credentials are attached",
+        "Connection, response, and overall request timeouts and response size limits are configured",
+        "The anonymous API is enabled only after configuration loads successfully and explicitly enables it",
+        "Logs, errors, and public responses do not expose tokens or Secret contents"
+      ]
+    }
+  ]
+}

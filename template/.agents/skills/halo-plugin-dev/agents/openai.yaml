@@ -1,0 +1,4 @@
+interface:
+  display_name: "Halo Plugin Development"
+  short_description: "Build Halo CMS plugins with Java backend and Vue frontend"
+  default_prompt: "Help me create a Halo plugin"
