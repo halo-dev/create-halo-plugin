@@ -203,7 +203,7 @@ cd my-plugin
 
 ## Requirements
 
-- **Node.js** >= 18.0.0 for the CLI; ^20.19.0 or >=22.12.0 for generated UI projects
+- **Node.js** >= 22.0.0 for the CLI; >=22.12.0 for generated UI projects
 - **Java** >= 21
 - **Halo** >= 2.26.0
 

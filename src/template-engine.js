@@ -91,7 +91,8 @@ export function renderProjectFiles(variables, filter = () => true) {
     )
     .filter(filter)
     .map((filePath) => renderProjectFile(filePath, variables, config))
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((file) => ({ ...file, path: file.path.replace(/\\/g, "/") }));
 }
 
 export function renderInternalFiles(templateName, variables) {
@@ -100,7 +101,10 @@ export function renderInternalFiles(templateName, variables) {
   return getAllFiles(path.join(templateDir, sourceRoot), sourceRoot).map(
     (filePath) => {
       const file = renderProjectFile(filePath, variables, config);
-      return { ...file, path: path.relative(sourceRoot, file.path) };
+      return {
+        ...file,
+        path: path.relative(sourceRoot, file.path).replace(/\\/g, "/"),
+      };
     },
   );
 }

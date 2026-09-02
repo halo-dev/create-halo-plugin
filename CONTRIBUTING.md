@@ -6,7 +6,7 @@ Thanks for helping improve `create-halo-plugin`.
 
 You need:
 
-- Node.js 18 or later
+- Node.js 22 or later
 - pnpm 10.33.0 (the version declared in `package.json`)
 - Java 21 when building a generated plugin
 

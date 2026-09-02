@@ -3,6 +3,14 @@ import fs from "fs-extra";
 import { MAVEN_PUBLISH_PLUGIN_VERSION } from "./constants.js";
 import { renderInternalFiles, renderProjectFiles } from "./template-engine.js";
 
+const CONCRETE_HALO_VERSION =
+  /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
+const JAVA_RESERVED_WORDS = new Set(
+  "abstract assert boolean break byte case catch char class const continue default do double else enum extends false final finally float for goto if implements import instanceof int interface long native new null package private protected public return short static strictfp super switch synchronized this throw throws transient true try void volatile while".split(
+    " ",
+  ),
+);
+
 /**
  * Plan a project change without writing files.
  * @param {string} projectPath Project root
@@ -50,7 +58,12 @@ export function planProjectChange(projectPath, intent) {
 
 function planAddModule(projectPath, name) {
   const plan = emptyPlan(projectPath);
-  if (!/^[a-z][a-z0-9-]*$/.test(name) || name === "ui") {
+  const packagePart = name.replace(/-/g, "");
+  if (
+    !/^[a-z][a-z0-9-]*$/.test(name) ||
+    name === "ui" ||
+    JAVA_RESERVED_WORDS.has(packagePart)
+  ) {
     plan.conflicts.push(`Invalid module name: ${name}`);
     return plan;
   }
@@ -75,9 +88,12 @@ function planAddModule(projectPath, name) {
     const moduleBuildPath = path.join(projectPath, name, "build.gradle");
     if (
       fs.existsSync(moduleBuildPath) &&
-      fs.readFileSync(moduleBuildPath, "utf8").includes("id 'java-library'") &&
+      hasCodeMatch(
+        fs.readFileSync(moduleBuildPath, "utf8"),
+        /\bid\s*(?:\(\s*)?['"]java-library['"]/g,
+      ) &&
       hasProjectInclude(settings, name) &&
-      build.includes(`project(':${name}')`)
+      hasProjectDependency(build, name)
     ) {
       plan.skips.push(`Module ${name} is already configured`);
     } else {
@@ -86,11 +102,15 @@ function planAddModule(projectPath, name) {
     return plan;
   }
 
-  const group = build.match(/^\s*group\s*(?:=\s*)?['"]([^'"]+)['"]/m)?.[1];
-  const haloVersion = build.match(
-    /run\.halo\.tools\.platform:plugin:([^'")]+)/,
+  const group = findCodeMatch(
+    build,
+    /^\s*group\s*(?:=\s*)?['"]([^'"]+)['"]/gm,
   )?.[1];
-  const javaVersion = build.match(/JavaLanguageVersion\.of\((\d+)\)/)?.[1];
+  const haloVersion = readHaloVersion(build);
+  const javaVersion = findCodeMatch(
+    build,
+    /JavaLanguageVersion\.of\((\d+)\)/g,
+  )?.[1];
   if (!group || !haloVersion || !javaVersion) {
     plan.conflicts.push(
       "Cannot determine group, Halo version, and Java version from build.gradle",
@@ -98,11 +118,14 @@ function planAddModule(projectPath, name) {
     return plan;
   }
 
-  const modulePackage = `${group}.${name.replace(/-/g, "")}`;
+  const modulePackage = `${group}.${packagePart}`;
   if (
     !modulePackage
       .split(".")
-      .every((part) => /^[a-z_$][a-z0-9_$]*$/i.test(part))
+      .every(
+        (part) =>
+          /^[a-z_$][a-z0-9_$]*$/i.test(part) && !JAVA_RESERVED_WORDS.has(part),
+      )
   ) {
     plan.conflicts.push(`Cannot create a Java package from group "${group}"`);
     return plan;
@@ -125,13 +148,13 @@ function planAddModule(projectPath, name) {
     }).map((file) => {
       const relativePath =
         file.path === "src/main/java/package-info.java"
-          ? path.join(
+          ? path.posix.join(
               "src/main/java",
               modulePackage.replace(/\./g, "/"),
               "package-info.java",
             )
           : file.path;
-      return { ...file, path: path.join(name, relativePath) };
+      return { ...file, path: path.posix.join(name, relativePath) };
     }),
   );
   const publishWorkflowPath = path.join(
@@ -149,14 +172,11 @@ function planAddModule(projectPath, name) {
     );
   } else {
     const workflow = fs.readFileSync(publishWorkflowPath, "utf8");
-    if (
-      workflow.includes("publishAndReleaseToMavenCentral") &&
-      workflow.includes("publishToMavenCentral")
-    ) {
+    if (publishesModule(workflow, name)) {
       plan.skips.push("Publish workflow already exists");
     } else {
       plan.conflicts.push(
-        ".github/workflows/publish.yml exists but does not configure Maven Central publishing",
+        `.github/workflows/publish.yml does not publish module ${name} to Maven Central`,
       );
     }
   }
@@ -322,7 +342,7 @@ function planAddUi(projectPath, uiTool) {
     if (
       existingTool === uiTool &&
       hasProjectInclude(settings, "ui") &&
-      build.includes("processUiResources")
+      hasUiGradleTask(build)
     ) {
       plan.skips.push(`UI is already configured with ${uiTool}`);
     } else {
@@ -330,17 +350,18 @@ function planAddUi(projectPath, uiTool) {
     }
     return plan;
   }
-  if (build.includes("processUiResources")) {
+  if (hasUiGradleTask(build)) {
     plan.conflicts.push(
       "build.gradle already defines processUiResources but the ui directory is missing",
     );
     return plan;
   }
 
-  const group = build.match(/^\s*group\s*(?:=\s*)?['"]([^'"]+)['"]/m)?.[1];
-  const haloVersion = build.match(
-    /run\.halo\.tools\.platform:plugin:([^'")]+)/,
+  const group = findCodeMatch(
+    build,
+    /^\s*group\s*(?:=\s*)?['"]([^'"]+)['"]/gm,
   )?.[1];
+  const haloVersion = readHaloVersion(build);
   if (!group || !haloVersion) {
     plan.conflicts.push(
       "Cannot determine the plugin group and Halo version from build.gradle",
@@ -377,10 +398,15 @@ function addProjectInclude(settings, name) {
 }
 
 function hasProjectInclude(settings, name) {
-  const statements = settings.matchAll(
-    /(?:^|\n)\s*include\s*(?:\(([\s\S]*?)\)|([^\n]+))/g,
+  const code = stripComments(settings);
+  const statements = code.matchAll(
+    /(?:^|\n)\s*include\b\s*(?:\(([\s\S]*?)\)|([^\n]+))/g,
   );
   for (const statement of statements) {
+    const includeIndex = statement.index + statement[0].indexOf("include");
+    if (!isCodePosition(settings, includeIndex)) {
+      continue;
+    }
     const argumentsText = statement[1] ?? statement[2];
     for (const argument of argumentsText.matchAll(/['"]([^'"]+)['"]/g)) {
       if (argument[1].replace(/^:/, "") === name) {
@@ -391,8 +417,15 @@ function hasProjectInclude(settings, name) {
   return false;
 }
 
+function hasProjectDependency(build, name) {
+  return hasCodeMatch(
+    build,
+    new RegExp(`project\\(\\s*['"]:${name}['"]\\s*\\)`, "g"),
+  );
+}
+
 function addProjectDependency(build, name) {
-  if (new RegExp(`project\\(\\s*['"]:${name}['"]\\s*\\)`).test(build)) {
+  if (hasProjectDependency(build, name)) {
     return build;
   }
   const block = findTopLevelBlock(build, "dependencies");
@@ -408,7 +441,12 @@ function addProjectDependency(build, name) {
 }
 
 function addModuleJarDependency(build, name) {
-  if (new RegExp(`dependsOn\\(\\s*['"]:${name}:jar['"]\\s*\\)`).test(build)) {
+  if (
+    hasCodeMatch(
+      build,
+      new RegExp(`dependsOn\\(\\s*['"]:${name}:jar['"]\\s*\\)`, "g"),
+    )
+  ) {
     return build;
   }
   return `${build.trimEnd()}\n\ntasks.named('jar') {\n    dependsOn(':${name}:jar')\n}\n`;
@@ -482,6 +520,14 @@ function skipNonCode(content, index) {
     const end = content.indexOf("/$", index + 2);
     return end === -1 ? content.length : end + 2;
   }
+  if (content[index] === "/" && isSlashyStringStart(content, index)) {
+    for (let cursor = index + 1; cursor < content.length; cursor += 1) {
+      if (content[cursor] === "/" && content[cursor - 1] !== "\\") {
+        return cursor + 1;
+      }
+    }
+    return content.length;
+  }
   if (content[index] !== "'" && content[index] !== '"') {
     return null;
   }
@@ -499,12 +545,115 @@ function skipNonCode(content, index) {
   return content.length;
 }
 
+function isSlashyStringStart(content, index) {
+  const lineStart = content.lastIndexOf("\n", index - 1) + 1;
+  const prefix = content.slice(lineStart, index).trimEnd();
+  return prefix === "" || "=(:,[!&|?{};".includes(prefix.at(-1));
+}
+
+function stripComments(content) {
+  const output = content.split("");
+  for (let index = 0; index < content.length; index += 1) {
+    const isComment =
+      content.startsWith("//", index) || content.startsWith("/*", index);
+    const skippedTo = skipNonCode(content, index);
+    if (skippedTo === null) {
+      continue;
+    }
+    if (isComment) {
+      for (let cursor = index; cursor < skippedTo; cursor += 1) {
+        if (output[cursor] !== "\n") {
+          output[cursor] = " ";
+        }
+      }
+    }
+    index = skippedTo - 1;
+  }
+  return output.join("");
+}
+
+function isCodePosition(content, position) {
+  for (let index = 0; index < position; index += 1) {
+    const skippedTo = skipNonCode(content, index);
+    if (skippedTo === null) {
+      continue;
+    }
+    if (position < skippedTo) {
+      return false;
+    }
+    index = skippedTo - 1;
+  }
+  return true;
+}
+
+function hasCodeMatch(content, pattern) {
+  return findCodeMatch(content, pattern) !== null;
+}
+
+function findCodeMatch(content, pattern) {
+  const code = stripComments(content);
+  for (const match of code.matchAll(pattern)) {
+    if (isCodePosition(content, match.index)) {
+      return match;
+    }
+  }
+  return null;
+}
+
+function readHaloVersion(build) {
+  const coordinates = build.matchAll(
+    /\bplatform\s*(?:\(\s*)?['"]run\.halo\.tools\.platform:plugin:([^'"]+)['"]/g,
+  );
+  for (const coordinate of coordinates) {
+    const version = coordinate[1].trim();
+    if (
+      isCodePosition(build, coordinate.index) &&
+      CONCRETE_HALO_VERSION.test(version)
+    ) {
+      return version;
+    }
+  }
+  return null;
+}
+
+function hasUiGradleTask(build) {
+  return (
+    hasCodeMatch(build, /\bprocessUiResources\b/g) ||
+    hasCodeMatch(
+      build,
+      /\btasks\s*\.\s*(?:create|named|register)\s*\(?\s*['"]processUiResources['"]/g,
+    )
+  );
+}
+
+function publishesModule(workflow, name) {
+  return ["publishAndReleaseToMavenCentral", "publishToMavenCentral"].every(
+    (task) => workflowRunsTask(workflow, name, task),
+  );
+}
+
+function workflowRunsTask(workflow, name, task) {
+  const acceptedTasks = new Set([task, `:${name}:${task}`]);
+  return workflow.split("\n").some((line) => {
+    const command = line.replace(/\s+#.*$/, "");
+    const match = command.match(
+      /^\s*(?:run:\s*)?(?:\.\/)?gradlew(?:\.bat)?\s+(.+)$/,
+    );
+    if (!match) {
+      return false;
+    }
+    return match[1]
+      .split(/\s+/)
+      .some((argument) => acceptedTasks.has(argument));
+  });
+}
+
 function renderUiBuild(variables) {
   return renderInternalFiles("ui-build", variables)[0].content.trim();
 }
 
 function addUiBuild(build, fragment) {
-  if (build.includes("processUiResources")) {
+  if (hasUiGradleTask(build)) {
     return build;
   }
   return `${build.trimEnd()}\n\n${fragment}\n`;
