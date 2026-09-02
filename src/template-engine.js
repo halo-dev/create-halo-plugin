@@ -2,10 +2,14 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fs from "fs-extra";
 import handlebars from "handlebars";
-import { getFileProcessingConfig, templateConfig } from "./template-config.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const templateDir = path.resolve(__dirname, "../template");
+const internalTemplateDir = "_internal";
+const conditionalFiles = {
+  vite: ["ui/vite.config.ts"],
+  rsbuild: ["ui/rsbuild.config.ts"],
+};
 
 handlebars.registerHelper("eq", (a, b) => a === b);
 
@@ -19,19 +23,6 @@ function renderTemplate(templatePath, variables) {
   const templateContent = fs.readFileSync(templatePath, "utf-8");
   const template = handlebars.compile(templateContent);
   return template(variables);
-}
-
-/**
- * Create Java package directory structure
- * @param {string} baseDir - Base directory
- * @param {string} packageName - Package name (e.g., com.example.plugin)
- * @returns {string} Package directory path
- */
-function createPackageDir(baseDir, packageName) {
-  const packagePath = packageName.replace(/\./g, "/");
-  const fullPath = path.join(baseDir, packagePath);
-  fs.ensureDirSync(fullPath);
-  return fullPath;
 }
 
 /**
@@ -59,20 +50,6 @@ function getAllFiles(dir, basePath = "") {
 }
 
 /**
- * Check if file is a conditional file
- * @param {string} filePath - File path
- * @param {string[]} conditionalFiles - Conditional files list
- * @returns {boolean}
- */
-function isConditionalFile(filePath, conditionalFiles) {
-  const normalizedPath = filePath.replace(/\\/g, "/");
-  return conditionalFiles.some((conditional) => {
-    const normalizedConditional = conditional.replace(/\\/g, "/");
-    return normalizedPath === normalizedConditional;
-  });
-}
-
-/**
  * Check if file is an excluded conditional file (should not be copied)
  * @param {string} filePath - File path
  * @param {Object} config - File processing configuration
@@ -82,11 +59,11 @@ function isExcludedConditionalFile(filePath, config) {
   const normalizedPath = filePath.replace(/\\/g, "/");
 
   // Get all conditional files (including selected and unselected)
-  const allConditionalFiles = Object.values(templateConfig.conditionalFiles)
+  const allConditionalFiles = Object.values(conditionalFiles)
     .flat()
     .map((file) => file.replace(/\\/g, "/"));
 
-  const selectedConditionalFiles = config.conditionalFiles.map((file) =>
+  const selectedConditionalFiles = config.selectedConditionalFiles.map((file) =>
     file.replace(/\\/g, "/"),
   );
 
@@ -98,78 +75,73 @@ function isExcludedConditionalFile(filePath, config) {
 }
 
 /**
- * Generate project
- * @param {string} projectPath - Project path
+ * Render project files without writing them.
  * @param {Object} variables - Template variables
+ * @param {(filePath: string) => boolean} [filter] - Optional source path filter
+ * @returns {Array<{path: string, content: string|Buffer, mode: number}>}
  */
-export async function generateProject(projectPath, variables) {
-  console.log("🔄 Generating project...");
-
-  // Ensure project directory exists
-  await fs.ensureDir(projectPath);
-
-  // Get file processing configuration
-  const config = getFileProcessingConfig(variables.uiTool, variables.includeUI);
-
-  // Get all files in template directory
-  const allFiles = getAllFiles(templateDir);
-
-  // Process each file
-  for (const filePath of allFiles) {
-    await processFile(filePath, projectPath, variables, config);
-  }
-
-  console.log("✨ Project generation completed!");
+export function renderProjectFiles(variables, filter = () => true) {
+  const config = {
+    includeUI: variables.includeUI,
+    selectedConditionalFiles: conditionalFiles[variables.uiTool] ?? [],
+  };
+  return getAllFiles(templateDir)
+    .filter(
+      (filePath) => !filePath.startsWith(`${internalTemplateDir}${path.sep}`),
+    )
+    .filter(filter)
+    .map((filePath) => renderProjectFile(filePath, variables, config))
+    .filter(Boolean);
 }
 
-/**
- * Process single file
- * @param {string} filePath - File relative path
- * @param {string} projectPath - Project output path
- * @param {Object} variables - Template variables
- * @param {Object} config - File processing configuration
- */
-async function processFile(filePath, projectPath, variables, config) {
+export function renderInternalFiles(templateName, variables) {
+  const sourceRoot = path.join(internalTemplateDir, templateName);
+  const config = { includeUI: false, selectedConditionalFiles: [] };
+  return getAllFiles(path.join(templateDir, sourceRoot), sourceRoot).map(
+    (filePath) => {
+      const file = renderProjectFile(filePath, variables, config);
+      return { ...file, path: path.relative(sourceRoot, file.path) };
+    },
+  );
+}
+
+function renderProjectFile(filePath, variables, config) {
   const srcPath = path.join(templateDir, filePath);
-
-  // Check if file exists
-  if (!fs.existsSync(srcPath)) {
-    return;
-  }
-
-  // Skip UI files if includeUI is false
   const normalizedPath = filePath.replace(/\\/g, "/");
+
   if (!config.includeUI && normalizedPath.startsWith("ui/")) {
-    return;
+    return null;
   }
 
-  if (filePath.endsWith(".template")) {
-    // Process template file
-    await processTemplateFile(filePath, srcPath, projectPath, variables);
-  } else if (isExcludedConditionalFile(filePath, config)) {
-    // Skip unmatched conditional files
-    return;
-  } else if (isConditionalFile(filePath, config.conditionalFiles)) {
-    // Process conditional file
-    await processConditionalFile(filePath, srcPath, projectPath);
-  } else {
-    // Process static file (direct copy)
-    await processStaticFile(filePath, srcPath, projectPath);
+  if (isExcludedConditionalFile(filePath, config)) {
+    return null;
   }
+
+  const mode = fs.statSync(srcPath).mode & 0o777;
+  if (filePath.endsWith(".template")) {
+    return {
+      path: getTemplateDestination(filePath, variables),
+      content: renderTemplate(srcPath, variables),
+      mode,
+    };
+  }
+
+  return {
+    path: filePath,
+    content: fs.readFileSync(srcPath),
+    mode,
+  };
 }
 
 /**
- * Process template file
+ * Get rendered template destination path
  * @param {string} filePath - File relative path
- * @param {string} srcPath - Source file path
- * @param {string} projectPath - Project path
  * @param {Object} variables - Template variables
+ * @returns {string} Destination path
  */
-async function processTemplateFile(filePath, srcPath, projectPath, variables) {
-  // Remove .template suffix
+function getTemplateDestination(filePath, variables) {
   let destFile = filePath.replace(".template", "");
 
-  // Special handling for Java file names
   if (destFile.includes("Plugin.java")) {
     destFile = destFile.replace(
       "Plugin.java",
@@ -182,53 +154,16 @@ async function processTemplateFile(filePath, srcPath, projectPath, variables) {
     );
   }
 
-  let destPath = path.join(projectPath, destFile);
-
-  // Special handling for Java file package structure
   if (
     destFile.includes("Plugin.java") ||
     destFile.includes("PluginTest.java")
   ) {
-    const javaDir = path.dirname(destPath);
-    const fileName = path.basename(destPath);
-    const packageDir = createPackageDir(javaDir, variables.packageName);
-    destPath = path.join(packageDir, fileName);
+    return path.join(
+      path.dirname(destFile),
+      variables.packageName.replace(/\./g, "/"),
+      path.basename(destFile),
+    );
   }
 
-  // Render template and write file
-  const content = renderTemplate(srcPath, variables);
-  await fs.ensureDir(path.dirname(destPath));
-  await fs.writeFile(destPath, content, "utf-8");
-
-  console.log(`✓ Render template: ${destFile}`);
-}
-
-/**
- * Process conditional file
- * @param {string} filePath - File relative path
- * @param {string} srcPath - Source file path
- * @param {string} projectPath - Project path
- */
-async function processConditionalFile(filePath, srcPath, projectPath) {
-  const destPath = path.join(projectPath, filePath);
-
-  await fs.ensureDir(path.dirname(destPath));
-  await fs.copy(srcPath, destPath);
-
-  console.log(`✓ Copy conditional file: ${filePath}`);
-}
-
-/**
- * Process static file
- * @param {string} filePath - File relative path
- * @param {string} srcPath - Source file path
- * @param {string} projectPath - Project path
- */
-async function processStaticFile(filePath, srcPath, projectPath) {
-  const destPath = path.join(projectPath, filePath);
-
-  await fs.ensureDir(path.dirname(destPath));
-  await fs.copy(srcPath, destPath);
-
-  console.log(`✓ Copy file: ${filePath}`);
+  return destFile;
 }

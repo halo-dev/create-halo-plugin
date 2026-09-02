@@ -1,0 +1,57 @@
+plugins {
+    id 'java-library'
+    id 'com.vanniktech.maven.publish' version '{{mavenPublishPluginVersion}}'
+}
+
+group = '{{group}}'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compileOnly platform('run.halo.tools.platform:plugin:{{haloVersion}}')
+    compileOnly 'run.halo.app:api'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of({{javaVersion}})
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = {{javaVersion}}
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    coordinates('{{group}}', '{{moduleName}}', project.version.toString())
+
+    pom {
+        name = '{{{pomName}}}'
+        description = '{{{pomDescription}}}'
+        url = '{{{projectUrl}}}'
+        licenses {
+            license {
+                name = '{{{licenseName}}}'
+                url = '{{{licenseUrl}}}'
+            }
+        }
+        developers {
+            developer {
+                id = '{{{developerId}}}'
+                name = '{{{developerName}}}'
+                url = '{{{developerUrl}}}'
+            }
+        }
+        scm {
+            url = '{{{scmUrl}}}'
+            connection = '{{{scmConnection}}}'
+            developerConnection = '{{{scmDeveloperConnection}}}'
+        }
+    }
+}

@@ -1,0 +1,4 @@
+/**
+ * Public Java API for {{projectName}}.
+ */
+package {{modulePackage}};

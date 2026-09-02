@@ -12,6 +12,7 @@ A scaffolding tool for creating [Halo](https://www.halo.run) plugin projects wit
 - 🏗️ **Modern Build Tools** - Choose between Vite or Rsbuild for UI development
 - 📦 **Complete Project Structure** - Pre-configured Gradle build, UI setup, and plugin manifest
 - 📝 **TypeScript Support** - Full TypeScript configuration for UI development
+- ➕ **Incremental Setup** - Add UI or a publishable Java module to an existing plugin
 
 ## Quick Start
 
@@ -85,6 +86,36 @@ pnpm create halo-plugin my-backend-plugin --name=my-backend-plugin --domain=com.
 ```
 
 Or select "no" when prompted to include a UI project during interactive setup.
+
+### Add UI Later
+
+Run the command from an existing Halo plugin root:
+
+```bash
+npx create-halo-plugin add ui --tool vite
+# or
+npx create-halo-plugin add ui --tool rsbuild
+```
+
+The command shows the files it will create or update before applying the
+change. Repeating the same command is a no-op. Existing `ui/` directories and
+unrecognized Gradle layouts are left untouched.
+
+### Add a Publishable Java Module
+
+```bash
+npx create-halo-plugin add module api
+```
+
+This creates the Java source and test structure, Maven Central publishing
+configuration, module README, and `.github/workflows/publish.yml`. It also
+includes the module in `settings.gradle` and adds it as an implementation
+dependency of the root plugin.
+
+The publishing workflow publishes snapshots from `main` and releases from
+`v*` tags. Configure these repository secrets before publishing:
+`MAVEN_CENTRAL_USERNAME`, `MAVEN_CENTRAL_PASSWORD`, `SIGNING_KEY`,
+`SIGNING_KEY_ID`, and `SIGNING_PASSWORD`.
 
 ## Project Structure
 
@@ -174,7 +205,7 @@ cd my-plugin
 
 - **Node.js** >= 18.0.0 for the CLI; ^20.19.0 or >=22.12.0 for generated UI projects
 - **Java** >= 21
-- **Halo** >= 2.21.0
+- **Halo** >= 2.26.0
 
 ## Plugin Name Rules
 
@@ -227,6 +258,7 @@ npx create-halo-plugin my-backend-plugin \
 ```
 
 Available options:
+
 - `-n, --name <name>` - Plugin name
 - `-d, --domain <domain>` - Domain for group and package name
 - `-a, --author <author>` - Author name
@@ -234,6 +266,11 @@ Available options:
 - `-u, --uiTool <tool>` - UI build tool (rsbuild or vite, required when includeUI is true)
 - `-h, --help` - Show help message
 - `-v, --version` - Show version number
+
+Incremental commands inspect the actual Groovy Gradle configuration and do not
+depend on generator comments. Kotlin DSL is not supported. A Java module
+requires an identifiable top-level `dependencies` block; ambiguous structures
+are rejected instead of overwritten.
 
 ## Contributing
 

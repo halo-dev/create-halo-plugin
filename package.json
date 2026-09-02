@@ -33,10 +33,10 @@
   ],
   "scripts": {
     "build": "echo 'No build step required'",
-    "check": "biome check --write ./src",
+    "check": "biome check --write ./src ./test",
     "dev": "node index.js",
     "release": "release-it",
-    "test": "echo 'No tests specified'"
+    "test": "node --test test/cli.test.js test/project.test.js"
   },
   "dependencies": {
     "fs-extra": "^11.3.2",
