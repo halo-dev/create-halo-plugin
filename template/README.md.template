@@ -10,9 +10,9 @@
 
 - Java 21+
 {{#if includeUI}}
-- Node.js ^20.19.0 or >=22.12.0
+- Node.js >=22.12.0
 {{else}}
-- Node.js 18+
+- Node.js 22+
 {{/if}}
 - pnpm
 

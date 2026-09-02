@@ -4,7 +4,8 @@ import path from "node:path";
 import fs from "fs-extra";
 import minimist from "minimist";
 import prompts from "prompts";
-import { generateProject } from "./template-engine.js";
+import { DEFAULT_HALO_SERIES, DEFAULT_HALO_VERSION } from "./constants.js";
+import { applyProjectChange, planProjectChange } from "./project.js";
 import {
   formatClassName,
   formatPackageName,
@@ -16,7 +17,7 @@ import {
 
 // Parse command line arguments
 const argv = minimist(process.argv.slice(2), {
-  string: ["name", "domain", "author", "uiTool"],
+  string: ["name", "domain", "author", "uiTool", "tool"],
   boolean: ["help", "version"],
   alias: {
     h: "help",
@@ -40,6 +41,8 @@ function showHelp() {
 
 Usage:
   pnpm create halo-plugin [directory] [options]
+  create-halo-plugin add ui --tool <vite|rsbuild>
+  create-halo-plugin add module <name>
 
 Options:
   -n, --name <name>       Plugin name (e.g., my-awesome-plugin)
@@ -47,12 +50,15 @@ Options:
   -a, --author <author>   Author name
   -i, --includeUI         Include UI project (default: prompt)
   -u, --uiTool <tool>     UI build tool (rsbuild or vite, required if includeUI is true)
+      --tool <tool>       UI build tool for "add ui"
   -h, --help              Show this help message
   -v, --version           Show version number
 
 Examples:
   pnpm create halo-plugin demo --name=demo --domain=com.example --author=ryanwang --includeUI --uiTool=rsbuild
   pnpm create halo-plugin --name my-plugin --domain com.example --author "John Doe" --includeUI=false
+  create-halo-plugin add ui --tool vite
+  create-halo-plugin add module api
   pnpm create halo-plugin
 `);
 }
@@ -133,7 +139,122 @@ async function collectUserInputs(argv) {
   }
 
   const answers = await promptForMissingInputs(fromCLI);
+  validateInputs(answers);
   return { ...answers, isInteractive: true };
+}
+
+async function runAddCommand(argv) {
+  let subject = argv._[1];
+  let intent;
+  let successMessage;
+
+  if (!subject) {
+    if (!process.stdin.isTTY) {
+      throw new Error("Usage: create-halo-plugin add <ui|module>");
+    }
+    const answer = await prompts({
+      type: "select",
+      name: "subject",
+      message: "What do you want to add?",
+      choices: [
+        { title: "UI", value: "ui" },
+        { title: "Java module", value: "module" },
+      ],
+    });
+    if (!answer.subject) {
+      console.log("❌ Operation cancelled");
+      return;
+    }
+    subject = answer.subject;
+  }
+
+  if (subject === "ui") {
+    let uiTool = argv.tool || argv.uiTool;
+    if (!uiTool) {
+      if (!process.stdin.isTTY) {
+        throw new Error(
+          'The "add ui" command requires --tool vite or --tool rsbuild',
+        );
+      }
+      const answer = await prompts({
+        type: "select",
+        name: "uiTool",
+        message: "Choose UI build tool:",
+        choices: [
+          { title: "Vite", value: "vite" },
+          { title: "Rsbuild", value: "rsbuild" },
+        ],
+      });
+      if (!answer.uiTool) {
+        console.log("❌ Operation cancelled");
+        return;
+      }
+      uiTool = answer.uiTool;
+    }
+    const validation = validateUITool(uiTool);
+    if (validation !== true) {
+      throw new Error(validation);
+    }
+    intent = { type: "add-ui", uiTool };
+    successMessage = "UI added successfully";
+  } else if (subject === "module") {
+    let name = argv._[2];
+    if (!name) {
+      if (!process.stdin.isTTY) {
+        throw new Error('The "add module" command requires a module name');
+      }
+      const answer = await prompts({
+        type: "text",
+        name: "name",
+        message: "Module name:",
+        initial: "api",
+      });
+      if (!answer.name) {
+        console.log("❌ Operation cancelled");
+        return;
+      }
+      name = answer.name;
+    }
+    intent = { type: "add-module", name };
+    successMessage = `Module ${name} added successfully`;
+  } else {
+    throw new Error("Usage: create-halo-plugin add <ui|module>");
+  }
+
+  const plan = planProjectChange(process.cwd(), intent);
+  if (plan.conflicts.length > 0) {
+    throw new Error(plan.conflicts.join("\n"));
+  }
+  for (const skip of plan.skips) {
+    console.log(`ℹ️ ${skip}`);
+  }
+  if (plan.creates.length === 0 && plan.patches.length === 0) {
+    return;
+  }
+
+  console.log("📋 Planned changes:");
+  for (const file of plan.creates) {
+    console.log(`   Create ${file.path}`);
+  }
+  for (const file of plan.patches) {
+    console.log(`   Update ${file.path}`);
+  }
+
+  if (process.stdin.isTTY) {
+    const { confirm } = await prompts({
+      type: "confirm",
+      name: "confirm",
+      message: "Apply changes?",
+      initial: true,
+    });
+    if (!confirm) {
+      console.log("❌ Operation cancelled");
+      return;
+    }
+  }
+
+  await applyProjectChange(plan);
+  console.log(`✅ ${successMessage}`);
 }
 
 /**
@@ -337,10 +458,20 @@ async function main() {
     process.exit(0);
   }
 
+  if (argv._[0] === "add") {
+    console.log("🚀 Halo Plugin Project Updater\n");
+    try {
+      await runAddCommand(argv);
+    } catch (error) {
+      console.error("❌ Command failed:", error.message);
+      process.exit(1);
+    }
+    return;
+  }
+
   console.log("🚀 Welcome to Halo Plugin Creator!\n");
 
   try {
-    // Validate target directory early (if user specified one)
     validateTargetDir(targetDir);
 
     // Collect user inputs (from CLI args or interactive prompts)
@@ -348,7 +479,7 @@ async function main() {
 
     // Process and format input
     const projectName = formatProjectName(answers.name);
-    const className = formatClassName(answers.name);
+    const className = formatClassName(projectName);
     const packageName = formatPackageName(answers.domain, projectName);
     const group = answers.domain;
 
@@ -363,6 +494,8 @@ async function main() {
       packageName,
       group,
       author: answers.author,
+      haloVersion: DEFAULT_HALO_VERSION,
+      haloSeries: DEFAULT_HALO_SERIES,
       includeUI: answers.includeUI,
       uiTool: answers.uiTool,
     };
@@ -396,8 +529,14 @@ async function main() {
       console.log("🔨 Creating project...");
     }
 
-    // Generate project
-    await generateProject(projectPath, variables);
+    const plan = planProjectChange(projectPath, {
+      type: "create",
+      variables,
+    });
+    if (plan.conflicts.length > 0) {
+      throw new Error(plan.conflicts.join("\n"));
+    }
+    await applyProjectChange(plan);
 
     console.log("\n✅ Project created successfully!");
     console.log("\n📖 Next steps:");

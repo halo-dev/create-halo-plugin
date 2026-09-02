@@ -6,7 +6,7 @@ Thanks for helping improve `create-halo-plugin`.
 
 You need:
 
-- Node.js 18 or later
+- Node.js 22 or later
 - pnpm 10.33.0 (the version declared in `package.json`)
 - Java 21 when building a generated plugin
 
@@ -31,11 +31,12 @@ unrelated formatting changes.
 Format and lint the CLI source:
 
 ```bash
+pnpm test
 pnpm check
 git diff --check
 ```
 
-`pnpm check` applies fixes to `src/`, so review the resulting diff.
+`pnpm check` applies fixes to `src/` and `test/`, so review the resulting diff.
 
 For changes to the generator or templates, generate a fresh project and build
 it. This is the same Rsbuild path covered by CI:
@@ -61,9 +62,14 @@ Test every variant affected by your change:
 - Use `--includeUI=false` without `--uiTool` for a backend-only plugin.
 - Test Rsbuild, Vite, and backend-only generation when changing shared template
   or generator behavior.
+- Run `create-halo-plugin add ui` against a backend-only project when changing
+  incremental UI behavior.
+- Run `create-halo-plugin add module api` when changing
+  multi-module behavior.
+- Verify `./gradlew :api:generatePomFileForMavenPublication` and inspect the
+  generated POM when changing module publishing metadata.
 
-The repository currently has no separate unit test suite. CI generates and
-builds an Rsbuild-based plugin on Linux and Windows.
+CI also generates and builds an Rsbuild-based plugin on Linux and Windows.
 
 ## Pull requests
 

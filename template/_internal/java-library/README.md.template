@@ -1,0 +1,8 @@
+# {{moduleName}}
+
+Published Java library for `{{projectName}}`.
+
+Maven coordinates: `{{group}}:{{moduleName}}:<version>`
+
+Publishing is handled by `.github/workflows/publish.yml`. Configure the Maven
+Central and signing secrets documented in that workflow before publishing.

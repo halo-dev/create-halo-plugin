@@ -4,6 +4,3 @@ pluginManagement {
     }
 }
 rootProject.name = 'plugin-{{projectName}}'
-{{#if includeUI}}
-include 'ui'
-{{/if}}

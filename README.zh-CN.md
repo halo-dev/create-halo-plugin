@@ -12,6 +12,7 @@
 - 🏗️ **现代构建工具** - 可选择 Vite 或 Rsbuild 进行 UI 开发
 - 📦 **完整项目结构** - 预配置的 Gradle 构建、UI 设置和插件清单
 - 📝 **TypeScript 支持** - 完整的 TypeScript 配置用于 UI 开发
+- ➕ **增量配置** - 为已有插件补充 UI 或可发布 Java 模块
 
 ## 快速开始
 
@@ -85,6 +86,33 @@ pnpm create halo-plugin my-backend-plugin --name=my-backend-plugin --domain=com.
 ```
 
 或者在交互式设置中选择 "否" 来跳过 UI 项目创建。
+
+### 后续添加 UI
+
+在已有 Halo 插件根目录执行：
+
+```bash
+npx create-halo-plugin add ui --tool vite
+# 或
+npx create-halo-plugin add ui --tool rsbuild
+```
+
+命令会先展示将要创建或更新的文件；重复执行相同命令不会产生变化。
+已有 `ui/` 目录或无法识别的 Gradle 结构不会被覆盖。
+
+### 添加可发布的 Java 模块
+
+```bash
+npx create-halo-plugin add module api
+```
+
+该命令会创建 Java 源码与测试目录、Maven Central 发布配置、模块 README
+以及 `.github/workflows/publish.yml`，同时在 `settings.gradle` 中包含模块，
+并将其作为根插件的实现依赖。
+
+发布工作流会从 `main` 发布 SNAPSHOT，并从 `v*` 标签发布正式版本。发布前需
+配置 `MAVEN_CENTRAL_USERNAME`、`MAVEN_CENTRAL_PASSWORD`、`SIGNING_KEY`、
+`SIGNING_KEY_ID` 和 `SIGNING_PASSWORD` 仓库密钥。
 
 ## 项目结构
 
@@ -172,9 +200,9 @@ cd my-plugin
 
 ## 系统要求
 
-- **Node.js** >= 18.0.0（CLI）；^20.19.0 或 >=22.12.0（生成的 UI 项目）
+- **Node.js** >= 22.0.0（CLI）；>=22.12.0（生成的 UI 项目）
 - **Java** >= 21
-- **Halo** >= 2.21.0
+- **Halo** >= 2.26.0
 
 ## 插件名称规则
 
@@ -227,6 +255,7 @@ npx create-halo-plugin my-backend-plugin \
 ```
 
 可用选项：
+
 - `-n, --name <name>` - 插件名称
 - `-d, --domain <domain>` - 域名（用于组和包名）
 - `-a, --author <author>` - 作者名称
@@ -234,6 +263,10 @@ npx create-halo-plugin my-backend-plugin \
 - `-u, --uiTool <tool>` - UI 构建工具 (rsbuild 或 vite，当 includeUI 为 true 时需要)
 - `-h, --help` - 显示帮助信息
 - `-v, --version` - 显示版本号
+
+增量命令检查实际的 Groovy Gradle 配置，不依赖生成器注释。暂不支持 Kotlin
+DSL。添加 Java 模块时必须能识别顶层 `dependencies` 块；遇到歧义结构会停止，
+不会覆盖开发者配置。
 
 ## 贡献
 

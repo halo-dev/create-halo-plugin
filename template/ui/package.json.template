@@ -18,9 +18,9 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
-    "@halo-dev/api-client": "^2.26.0",
-    "@halo-dev/components": "^2.26.0",
-    "@halo-dev/ui-shared": "^2.26.0",
+    "@halo-dev/api-client": "^{{haloVersion}}",
+    "@halo-dev/components": "^{{haloVersion}}",
+    "@halo-dev/ui-shared": "^{{haloVersion}}",
     "axios": "^1.19.0",
     "canvas-confetti": "^1.9.4",
     "vue": "^3.5.40"
@@ -32,7 +32,7 @@
     "@rsbuild/core": "^2.1.11",
     "@rsbuild/plugin-sass": "^2.0.1",
 {{/if}}
-    "@halo-dev/ui-plugin-bundler-kit": "^2.26.0",
+    "@halo-dev/ui-plugin-bundler-kit": "^{{haloVersion}}",
     "@iconify-json/ri": "^1.2.10",
     "@tsconfig/node24": "^24.0.4",
     "@types/canvas-confetti": "^1.9.0",
@@ -60,6 +60,6 @@
   },
   "packageManager": "pnpm@10.33.0",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.12.0"
   }
 }
