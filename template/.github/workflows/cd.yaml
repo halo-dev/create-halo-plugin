@@ -7,7 +7,10 @@ on:
 
 jobs:
   cd:
-    uses: halo-sigs/reusable-workflows/.github/workflows/plugin-cd.yaml@v4
+    uses: halo-sigs/reusable-workflows/.github/workflows/plugin-cd.yaml@v5
+    secrets:
+      # https://github.com/halo-sigs/reusable-workflows#githubworkflowsplugin-cdyaml
+      halo-pat: ${{ secrets.HALO_RUN_PAT }}
     permissions:
       contents: write
     with:
