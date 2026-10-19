@@ -112,4 +112,15 @@ test("CLI creates a plugin whose name contains a dot", async (t) => {
     ),
     /class BlogCommentPlugin/,
   );
+  assert.match(
+    await readFile(path.join(projectPath, "build.gradle"), "utf8"),
+    /plugin:2\.27\.0[\s\S]*version = '2\.27'/,
+  );
+  assert.match(
+    await readFile(
+      path.join(projectPath, "src/main/resources/plugin.yaml"),
+      "utf8",
+    ),
+    /requires: ">=2\.27\.0"/,
+  );
 });

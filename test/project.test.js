@@ -108,7 +108,9 @@ test("adds a Vite UI to an existing backend-only plugin", async (t) => {
   assert.match(packageJson, /"vite": "\^8\.2\.0"/);
   assert.match(packageJson, /"@halo-dev\/api-client": "\^2\.26\.0"/);
   assert.match(packageJson, /"node": ">=22\.12\.0"/);
+  assert.match(packageJson, /"vue-router": "~5\.1\.0"/);
   assert.doesNotMatch(packageJson, /"@rsbuild\/core"/);
+  assert.doesNotMatch(packageJson, /"@rsbuild\/plugin-vue"/);
 });
 
 test("uses the configured Halo version across a new project", async (t) => {
@@ -308,6 +310,10 @@ test("adds UI without relying on generator comments", async (t) => {
   assert.match(
     await readFile(path.join(projectPath, "build.gradle"), "utf8"),
     /processUiResources/,
+  );
+  assert.match(
+    await readFile(path.join(projectPath, "ui/package.json"), "utf8"),
+    /"@rsbuild\/plugin-vue": "\^2\.0\.1"/,
   );
   assert.doesNotMatch(
     await readFile(path.join(projectPath, "settings.gradle"), "utf8"),

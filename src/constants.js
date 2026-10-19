@@ -1,4 +1,4 @@
-export const DEFAULT_HALO_VERSION = "2.26.0";
+export const DEFAULT_HALO_VERSION = "2.27.0";
 export const DEFAULT_HALO_SERIES = DEFAULT_HALO_VERSION.split(".")
   .slice(0, 2)
   .join(".");

@@ -205,7 +205,7 @@ cd my-plugin
 
 - **Node.js** >= 22.0.0 for the CLI; >=22.12.0 for generated UI projects
 - **Java** >= 21
-- **Halo** >= 2.26.0
+- **Halo** >= 2.27.0
 
 ## Plugin Name Rules
 
