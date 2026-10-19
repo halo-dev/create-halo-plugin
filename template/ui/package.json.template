@@ -23,7 +23,8 @@
     "@halo-dev/ui-shared": "^{{haloVersion}}",
     "axios": "^1.19.0",
     "canvas-confetti": "^1.9.4",
-    "vue": "^3.5.40"
+    "vue": "^3.5.40",
+    "vue-router": "~5.1.0"
   },
   "devDependencies": {
 {{#if (eq uiTool "vite")}}
@@ -31,6 +32,7 @@
 {{else}}
     "@rsbuild/core": "^2.1.11",
     "@rsbuild/plugin-sass": "^2.0.1",
+    "@rsbuild/plugin-vue": "^2.0.1",
 {{/if}}
     "@halo-dev/ui-plugin-bundler-kit": "^{{haloVersion}}",
     "@iconify-json/ri": "^1.2.10",
