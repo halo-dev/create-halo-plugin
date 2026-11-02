@@ -1,6 +1,7 @@
 plugins {
     id 'java-library'
     id 'com.vanniktech.maven.publish' version '{{mavenPublishPluginVersion}}'
+    id 'com.diffplug.spotless' version '8.10.2'
 }
 
 group = '{{group}}'
@@ -53,5 +54,11 @@ mavenPublishing {
             connection = '{{{scmConnection}}}'
             developerConnection = '{{{scmDeveloperConnection}}}'
         }
+    }
+}
+
+spotless {
+    java {
+        palantirJavaFormat("2.90.0").formatJavadoc(true)
     }
 }
